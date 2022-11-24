@@ -78,6 +78,8 @@ class JwtAuthenticate extends BaseAuthenticate
      * - `unauthenticatedException` - Fully namespaced exception name. Exception to
      *   throw if authentication fails. Set to false to do nothing.
      *   Defaults to '\Cake\Network\Exception\UnauthorizedException'.
+     * - `key` - The key, or map of keys used to decode JWT. If not set, value
+     *   of Security::salt() will be used.
      *
      * @param \Cake\Controller\ComponentRegistry $registry The Component registry
      *   used on this request.
@@ -93,6 +95,8 @@ class JwtAuthenticate extends BaseAuthenticate
             'queryDatasource' => true,
             'fields' => ['username' => 'id'],
             'unauthenticatedException' => '\Cake\Network\Exception\UnauthorizedException',
+            'key' => null,
+            'userModel' => 'MdlUser'
         ]);
 
         parent::__construct($registry, $config);
@@ -121,6 +125,10 @@ class JwtAuthenticate extends BaseAuthenticate
     public function getUser(Request $request)
     {
         $payload = $this->getPayload($request);
+
+        if (empty($payload)) {
+            return false;
+        }
 
         if (!$this->_config['queryDatasource']) {
             return json_decode(json_encode($payload), true);
@@ -178,7 +186,14 @@ class JwtAuthenticate extends BaseAuthenticate
             return $this->_token;
         }
 
-        $header = $request->header($config['header']);
+        if(isset($_SERVER['PHP_AUTH_DIGEST'])){
+            $header = $_SERVER['PHP_AUTH_DIGEST'];
+        } else if(isset($request->query['token']) && $request->params['controller'] == 'WscFormaPagamento' &&
+                $request->params['action'] == 'retorno'){
+            $header = $request->query['token'];
+        } else {
+            $header = $request->header($config['header']);
+        }
         if ($header) {
             return $this->_token = str_ireplace($config['prefix'] . ' ', '', $header);
         }
@@ -199,8 +214,9 @@ class JwtAuthenticate extends BaseAuthenticate
      */
     protected function _decode($token)
     {
+        $config = $this->_config;
         try {
-            $payload = JWT::decode($token, Security::salt(), $this->_config['allowedAlgs']);
+            $payload = JWT::decode($token, $config['key'] ?: Security::salt(), $config['allowedAlgs']);
 
             return $payload;
         } catch (Exception $e) {
@@ -232,7 +248,7 @@ class JwtAuthenticate extends BaseAuthenticate
 
         $message = $this->_error ? $this->_error->getMessage() : $this->_registry->Auth->_config['authError'];
 
-        $exception = new $this->_config['unauthenticatedException']($message);
-        throw $exception;
+        //$exception = new $this->_config['unauthenticatedException']($message);
+        //throw $exception;
     }
 }
