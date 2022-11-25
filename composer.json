@@ -1,7 +1,7 @@
 {
     "name": "admad/cakephp-jwt-auth",
     "type": "cakephp-plugin",
-    "version": "2.0.10"
+    "version": "2.0.10",
     "description": "CakePHP plugin for authenticating using JSON Web Tokens",
     "keywords": [
         "cakephp",
