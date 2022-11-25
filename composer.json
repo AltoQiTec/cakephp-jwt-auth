@@ -1,6 +1,7 @@
 {
-    "name": "AltoQiTec/cakephp-jwt-auth",
-    "type": "cakephp-plugin",
+    "name": "admad/cakephp-jwt-auth",
+    "type": "package",
+    "version": "main"
     "description": "CakePHP plugin for authenticating using JSON Web Tokens",
     "keywords": [
         "cakephp",
